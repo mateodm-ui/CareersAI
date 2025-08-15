@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            background-color: #f3f4f6;
+            border-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app" class="card w-full max-w-2xl mx-auto">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-4xl font-bold text-slate-800 mb-2 pt-8">Find Your Future in AI 🤖</h1>
+            <p class="text-slate-600 mb-8">Answer a few questions to discover which AI career path is the best fit for you.</p>
+            <button id="start-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div id="progress-bar" class="w-full bg-slate-200 rounded-full h-2.5 mb-6">
+                <div id="progress-bar-inner" class="bg-sky-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            <h2 id="question-text" class="text-2xl font-bold text-slate-800 mb-6">Question text goes here...</h2>
+            <div id="answers-container" class="space-y-3">
+                <!-- Answer buttons will be generated here -->
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Your recommended path is...</h2>
+            <div id="result-content" class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <h3 id="result-title" class="text-2xl font-bold text-sky-600 mb-2"></h3>
+                <p id="result-description" class="text-slate-700"></p>
+            </div>
+            <button id="restart-btn" class="mt-8 bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">
+                Restart Quiz
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        // Quiz questions and answers. Each answer has points that correspond to a career category.
+        const quizData = [
+            {
+                question: "What kind of task sounds most interesting to you?",
+                answers: [
+                    { text: "A) Building and designing a complex system from scratch.", points: { technical: 2, hybrid: 0, ethics: 0 } },
+                    { text: "B) Explaining a cool new technology to a friend.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "C) Debating the rules and societal impact of a new technology.", points: { technical: 0, hybrid: 0, ethics: 2 } }
+                ]
+            },
+            {
+                question: "Which school subject do you enjoy the most?",
+                answers: [
+                    { text: "A) Advanced Math or Physics.", points: { technical: 2, hybrid: 0, ethics: 0 } },
+                    { text: "B) English, Communications, or Art.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "C) History, Government, or Philosophy.", points: { technical: 0, hybrid: 0, ethics: 2 } }
+                ]
+            },
+            {
+                question: "When you face a difficult problem, what's your first instinct?",
+                answers: [
+                    { text: "A) Analyze the data and look for a logical solution.", points: { technical: 1, hybrid: 0, ethics: 1 } },
+                    { text: "B) Brainstorm creative ideas with a group.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "C) Think about who the problem affects and what the fairest outcome would be.", points: { technical: 0, hybrid: 1, ethics: 2 } }
+                ]
+            },
+            {
+                question: "What kind of work environment do you prefer?",
+                answers: [
+                    { text: "A) A quiet space where I can focus on deep, technical problems.", points: { technical: 2, hybrid: 0, ethics: 0 } },
+                    { text: "B) A collaborative setting where I'm constantly talking to people.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "C) A research-oriented environment where I can read and discuss big ideas.", points: { technical: 0, hybrid: 0, ethics: 2 } }
+                ]
+            },
+            {
+                question: "If you were building an app, what part would you be most excited about?",
+                answers: [
+                    { text: "A) Writing the elegant, efficient code that makes it all run.", points: { technical: 2, hybrid: 0, ethics: 0 } },
+                    { text: "B) Designing the user interface and how people will interact with it.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "C) Writing the user privacy policy and ensuring the app is fair for everyone.", points: { technical: 0, hybrid: 0, ethics: 2 } }
+                ]
+            },
+             {
+                question: "Which statement best describes you?",
+                answers: [
+                    { text: "I love making things work.", points: { technical: 2, hybrid: 0, ethics: 0 } },
+                    { text: "I love connecting people and ideas.", points: { technical: 0, hybrid: 2, ethics: 0 } },
+                    { text: "I love asking 'why' and 'what if?'", points: { technical: 0, hybrid: 0, ethics: 2 } }
+                ]
+            }
+        ];
+
+        // Result descriptions based on the highest score.
+        const resultsMap = {
+            technical: {
+                title: "Technical Roles 🏗️",
+                description: "You're a great fit for a role like an AI/Machine Learning Engineer! You enjoy building, logic, and diving deep into how things work. You should focus on Computer Science, Math, and hands-on coding projects."
+            },
+            hybrid: {
+                title: "Hybrid Roles 🚀",
+                description: "You're a great fit for a role like an AI Product Manager or Prompt Engineer! You're a great communicator who can bridge the gap between technology and people. You should explore a mix of technical and communication-focused subjects."
+            },
+            ethics: {
+                title: "Ethics & Policy Roles 🤔",
+                description: "You're a great fit for a role like an AI Ethicist! You're a critical thinker who considers the bigger picture and the human impact of technology. You should explore fields like philosophy, sociology, and public policy."
+            }
+        };
+
+        // --- STATE ---
+        // Variables to track the current state of the quiz.
+        let currentQuestionIndex = 0;
+        let scores = { technical: 0, hybrid: 0, ethics: 0 };
+
+        // --- DOM ELEMENTS ---
+        // Getting references to all the HTML elements we'll need to interact with.
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        const progressBarInner = document.getElementById('progress-bar-inner');
+
+        const resultTitle = document.getElementById('result-title');
+        const resultDescription = document.getElementById('result-description');
+
+        // --- FUNCTIONS ---
+
+        // Starts the quiz, hiding the start screen and showing the first question.
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            showQuestion();
+        }
+
+        // Displays the current question and its answer options.
+        function showQuestion() {
+            const question = quizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            answersContainer.innerHTML = ''; // Clear previous answers
+
+            // Create a button for each answer option
+            question.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.textContent = answer.text;
+                button.className = 'btn';
+                button.onclick = () => selectAnswer(answer.points);
+                answersContainer.appendChild(button);
+            });
+            
+            // Update the progress bar
+            const progress = ((currentQuestionIndex) / quizData.length) * 100;
+            progressBarInner.style.width = `${progress}%`;
+        }
+
+        // Handles an answer selection, updates scores, and moves to the next question or shows results.
+        function selectAnswer(points) {
+            scores.technical += points.technical;
+            scores.hybrid += points.hybrid;
+            scores.ethics += points.ethics;
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < quizData.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Calculates and displays the final result.
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            // Find which category has the highest score
+            const finalResultKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            const result = resultsMap[finalResultKey];
+
+            resultTitle.textContent = result.title;
+            resultDescription.textContent = result.description;
+        }
+
+        // Resets the quiz to its initial state.
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            scores = { technical: 0, hybrid: 0, ethics: 0 };
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            progressBarInner.style.width = '0%';
+        }
+
+        // --- EVENT LISTENERS ---
+        // Attaching the functions to the button click events.
+        startBtn.addEventListener('click', startQuiz);
+        restartBtn.addEventListener('click', restartQuiz);
+
+    </script>
+</body>
+</html>
